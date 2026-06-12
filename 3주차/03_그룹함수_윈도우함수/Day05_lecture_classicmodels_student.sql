@@ -197,7 +197,9 @@ ORDER BY YearMonth;
 SELECT customerName,
        country,
        creditLimit,
+       -- 국가평가 신용한도
        ROUND(AVG(creditLimit) OVER (PARTITION BY country), 2) AS CountryAvgCredit,
+       -- 국가별로 나눔 /  신용한도 높은 순서 분할
        NTILE(3) OVER (
            PARTITION BY country
            ORDER BY creditLimit DESC
@@ -246,14 +248,20 @@ ORDER BY country, CreditTier, creditLimit DESC;
 -- ------------------------------------------------------------
 
 SELECT YearMonth,
+        -- 해당월 매출
        ROUND(MonthlyRevenue, 2)                              AS MonthlyRevenue,
+
+       -- 시간순 정렬로 직전월 값 추출 (직전월 매출)
        ROUND(LAG(MonthlyRevenue, 1) OVER (
            ORDER BY YearMonth
        ), 2)                                                 AS PrevMonthRevenue,
+       -- 해당월 매출 - 직전월 매출 => 전월대비 증감액
        ROUND(
            MonthlyRevenue -
            LAG(MonthlyRevenue, 1) OVER (ORDER BY YearMonth)
        , 2)                                                  AS MoM_Change,
+
+       -- 해당월 매출 - 직전월 매출 / 직전월 매출 => 전월대비 증감률
        ROUND(
            (MonthlyRevenue -
             LAG(MonthlyRevenue, 1) OVER (ORDER BY YearMonth))
