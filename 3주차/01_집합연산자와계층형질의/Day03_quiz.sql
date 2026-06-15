@@ -34,8 +34,8 @@ select * from products;
 SELECT productLine, COUNT(*) AS 제품수
 FROM products
 GROUP BY productLine
-ORDER BY productLine ASC
 HAVING 제품수 >= 10
+ORDER BY 제품수 ASC
 ;
 
 
@@ -47,16 +47,18 @@ HAVING 제품수 >= 10
 -- 조회할 필드명: productCode, productName, MSRP
 -- 테이블: products
 -- ============================================================
-SELECT productCode, productName, MSRP
-FROM products
-WHERE MSRP > (SELECT AVG(MSRP) FROM products)
-ORDER BY MSRP DESC
+select * from products;
+
+select productCode, productName, MSRP
+from products
+where MSRP > (select AVG(MSRP) from products)
+order by MSRP DESC
 ;
 
 
 
 -- ============================================================
--- 문제 3. [JOIN]
+-- 문제 3. [JOIN] ❌
 -- 주문(orders)한 적이 없는 고객을 고객번호, 고객명 순으로 조회하는 시나리오:
 -- 내부 조인을 사용하지 않고, LEFT JOIN을 활용하여 orders 테이블에 존재하지 않는 고객을 찾으세요.
 -- LEFT JOIN문 사용
@@ -66,12 +68,13 @@ ORDER BY MSRP DESC
 select * from customers;
 select * from orders;
 
-SELECT customerNumber, customerName
-FROM customers c
-LEFT JOIN orders o ON c.customerName = o.stomerNumber
-WHERE NOT IN orders
+select c.customerNumber, c.customerName
+from customers c
+left join orders o on c.customerNumber = o.customerNumber
+where o.orderNumber is null
 ;
 
+-- 틀린 이유 where is null 을 몰랐음
 -- ============================================================
 -- 문제 4. [INTERSECT + JOIN]
 -- 2003년과 2004년 모두 주문한 고객의 customerNumber와 고객명을
@@ -79,35 +82,20 @@ WHERE NOT IN orders
 -- 조회할 필드명: customerNumber, customerName, country, city
 -- 테이블: customers, orders
 -- ============================================================
-SELECT customerNumber, customerName, country, city
-FROM customers
-INNER JOIN orders ON c.customerName = o.stomerNumber
-WHERE strftime('%Y', orderDate) = '2003'
-AND strftime('%Y', orderDate) = '2004'
-ORDER BY customerNumber DESC
-;
-
-SELECT c.customerNumber, c.customerName, c.country, c.city
-FROM customers c
--- inner join 이 아난 그냥 join
-INNER JOIN (
-
-SELECT *
-FROM orders
-WHERE strftime('%Y', orderDate) = '2003'
-INTERSECT
-SELECT *
-FROM orders
-WHERE strftime('%Y', orderDate) = '2004'    
+select c.customerNumber, c.customerName, c.country, c.city
+from customers c
+join (
+    select customerNumber
+    from orders
+    where strftime('%Y', orderDate) = '2003'
+    INTERSECT
+    select customerNumber
+    from orders
+    where strftime('%Y', orderDate) = '2004'
 ) o
-ON c.customerName = o.stomerNumber
-ORDER BY customerNumber DESC
+on c.customerNumber = o.customerNumber
+ORDER BY c.customerNumber
 ;
-
-
-
-
-
 
 -- ============================================================
 -- 문제 5. [복합 활용: JOIN, Subquery, UNION]
@@ -123,44 +111,18 @@ ORDER BY customerNumber DESC
 
 -- 메인쿼리 : customerNumber, customerName, country, city, orderCount
 -- 서브쿼리
-------------- 서브쿼리 1 - 미국 고객 중 2004년에 주문한 고객
-SELECT *
-FROM customers 
-INNER JOIN orders o ON c.customerNumber = o.customerNumber
-
 ------------- 서브쿼리 2 - 프랑스 고객 중 2004년에 주문한 고객
+select * from customers;
+select * from orders;
 
-
-
-
-
-
-
-
-SELECT 
-FROM (
-    -- [서브쿼리1] 미국 고객 중 2004년에 주문한 고객
-    SELECT 
-           (
-               -- [서브쿼리1-1] 해당 고객의 2004년 주문 개수
-               
-           ) AS orderCount
-    
-
-    UNION
-
-    -- [서브쿼리2] 프랑스 고객 중 2004년에 주문한 고객
-    SELECT 
-           (
-               -- [서브쿼리2-1] 해당 고객의 2004년 주문 개수
-               
-           ) AS orderCount
-    
-)
-ORDER BY 
-
-
-
+------------- 서브쿼리 1 - 미국 고객 중 2004년에 주문한 고객
+select c.customerNumber, c.customerName, c.country, c.city, count(*) as orderCount
+from customers c
+join orders o on c.customerNumber = o.customerNumber
+where country = 'USA'
+and orderDate = strftime('%Y', orderDate) = '2004'
+GROUP BY customerNumber
+;
 
 SELECT customerNumber,
        customerName,

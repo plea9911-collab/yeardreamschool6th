@@ -35,19 +35,7 @@
 -- [문제1]
 -- 고객별 총 구매액(TotalPurchase)을 계산하고, 내림차순 기준으로
 -- RANK, DENSE_RANK, ROW_NUMBER 순위를 함께 조회하세요.
-SELECT
-    c.CustomerId,
-    c.FirstName || ' ' || c.LastName  AS CustomerName,
-    c.Country,
-    ROUND(SUM(i.Total), 2)            AS TotalPurchase,
-    RANK()       OVER (ORDER BY SUM(i.Total) DESC) AS Rank,
-    DENSE_RANK() OVER (ORDER BY SUM(i.Total) DESC) AS DenseRank,
-    ROW_NUMBER() OVER (ORDER BY SUM(i.Total) DESC) AS RowNumber
-FROM   customers c
-JOIN   invoices  i ON c.CustomerId = i.CustomerId
-GROUP BY c.CustomerId, c.FirstName, c.LastName, c.Country
-ORDER BY TotalPurchase DESC
-LIMIT 10;
+
 
 -- [문제2]
 -- 각 국가별로 고객의 총 구매액 순위를 매기세요.
