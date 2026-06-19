@@ -128,7 +128,23 @@ SELECT employeeNumber, rep_name, customer_count, avg_creditLimit
    -- 출력: territory, customer_count, order_count, total_revenue
    -- 테이블명: offices, employees, customers, orders, orderdetails
    ---------------------------------------------------------------- */
+SELECT * FROM offices;
+SELECT * FROM employees;
+SELECT * FROM customers;
+SELECT * FROM orders;
+SELECT * FROM orderdetails;
 
+SELECT of.territory, 
+         count(c.customerNumber) as customer_count, 
+         count(o.orderNumber) as order_count, 
+         (ord.quantityOrdered * ord.priceEach) as total_revenue
+FROM offices of
+LEFT JOIN employees e ON of.officeCode = e.officeCode
+LEFT JOIN customers c ON e.employeeNumber = c.salesRepEmployeeNumber
+LEFT JOIN orders o ON c.customerNumber = o.customerNumber
+LEFT JOIN orderdetails ord ON o.orderNumber = ord.orderNumber
+GROUP BY of.territory
+;
 
 /* ----------------------------------------------------------------
    Q09. [JOIN + HAVING] 'Classic Cars' 라인 제품을 3회 이상 구매한 고객
@@ -138,8 +154,21 @@ SELECT employeeNumber, rep_name, customer_count, avg_creditLimit
    -- HAVING purchase_count >= 3
    -- 테이블명: customers, orders, orderdetails, products
    ---------------------------------------------------------------- */
+select * from products;
+SELECT c.customerNumber, 
+         c.customerName, 
+         count(*) as purchase_count
+FROM customers c 
+JOIN orders o ON c.customerNumber = o.customerNumber
+JOIN orderdetails ord ON o.orderNumber = ord.orderNumber
+JOIN products p ON p.productCode = ord.productCode
+GROUP BY c.customerName, c.customerNumber
+HAVING purchase_count >= 3
+;
 
-
+   p.productCode = ord.productCode
+   ors.orderNumber = ord.orderNumber
+   c.customerNumber = o.
 /* ================================================================
    PART C. 서브쿼리 문제 (5)
    ================================================================ */
@@ -151,7 +180,12 @@ SELECT employeeNumber, rep_name, customer_count, avg_creditLimit
    -- 출력: customerNumber, customerName, creditLimit (내림차순)
    -- 테이블명: customers
    ---------------------------------------------------------------- */
-
+SELECT customerNumber, 
+         customerName, 
+         creditLimit
+FROM customers
+WHERE creditLimit > (SELECT avg(creditLimit) from customers)
+;
 
 /* ----------------------------------------------------------------
    Q11. [IN 서브쿼리] 2003년과 2004년 모두 주문한 고객
@@ -159,6 +193,17 @@ SELECT employeeNumber, rep_name, customer_count, avg_creditLimit
    -- 출력: customerNumber, customerName
    -- 테이블명: customers, orders
    ---------------------------------------------------------------- */
+SELECT customerNumber,
+       customerName
+FROM customers c
+WHERE customerNumber IN (SELECT customerNumber 
+                  FROM orders
+                  WHERE strftime('%Y', orderDate) = '2003')
+AND customerNumber IN (SELECT customerNumber 
+                  FROM orders
+                  WHERE strftime('%Y', orderDate) = '2004'
+                  )
+;
 
 
 /* ----------------------------------------------------------------
@@ -167,8 +212,16 @@ SELECT employeeNumber, rep_name, customer_count, avg_creditLimit
    -- 출력: customerNumber, customerName, country
    -- 테이블명: customers, orders
    ---------------------------------------------------------------- */
+SELECT customerNumber,
+       customerName,
+        country
+FROM customers c
+WHERE customerName NOT IN (SELECT customerName
+                           FROM orders
+                           WHERE )
+;
 
-
+JOIN orders o ON c.customerNumber = o.customerNumber
 /* ----------------------------------------------------------------
    Q13. [FROM 서브쿼리] productLine별 매출 TOP 3
    -- 카테고리 마케팅: 라인별 매출 상위 3개만
